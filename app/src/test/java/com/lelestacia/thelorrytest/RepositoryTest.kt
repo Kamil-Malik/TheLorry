@@ -10,6 +10,9 @@ import com.lelestacia.thelorrytest.data.repository.RestaurantRepository
 import com.lelestacia.thelorrytest.domain.mapper.asRestaurant
 import com.lelestacia.thelorrytest.util.ErrorParserUtil
 import com.lelestacia.thelorrytest.util.Resource
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -31,6 +34,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.BlockJUnit4ClassRunner
 import retrofit2.HttpException
 import retrofit2.Response
+import java.net.UnknownHostException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(BlockJUnit4ClassRunner::class)
@@ -41,6 +45,12 @@ class RepositoryTest {
     private lateinit var restaurantRepository: IRestaurantRepository
 
     private val testDispatcher = StandardTestDispatcher()
+    private val moshi: Moshi = Moshi
+        .Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+    private val errorJsonAdapter: JsonAdapter<GenericTypeError> = moshi
+        .adapter(GenericTypeError::class.java).lenient()
 
     @Before
     fun setup() {
@@ -110,10 +120,11 @@ class RepositoryTest {
                 message = "This category is under maintenance, please try in another time."
             )
         )
+        val json: String = errorJsonAdapter.toJson(expectedResult)
         coEvery { restaurantAPI.getRestaurantsListByCategory("") } throws HttpException(
             Response.error<ResponseBody>(
                 400,
-                expectedResult.toString().toResponseBody()
+                json.toResponseBody()
             )
         )
         val actualResult = restaurantRepository.getRestaurantsListByCategory("").toList()
@@ -129,6 +140,27 @@ class RepositoryTest {
         assertEquals(
             "Error message should match expected error message",
             expectedResult.message,
+            (actualResult.last() as Resource.Error).message
+        )
+    }
+
+    @Test
+    fun `Connection error message should be correct`() = runTest(testDispatcher) {
+        val expectedMessage = "Please check your connection and try again."
+        coEvery { restaurantAPI.getRestaurantsListByCategory("") } throws UnknownHostException(expectedMessage)
+        val actualResult = restaurantRepository.getRestaurantsListByCategory("").toList()
+        coVerify(exactly = 1) { restaurantAPI.getRestaurantsListByCategory("") }
+        assertTrue(
+            "First result should be Loading",
+            actualResult.first() is Resource.Loading
+        )
+        assertTrue(
+            "Second result should be Success",
+            actualResult.last() is Resource.Error
+        )
+        assertEquals(
+            "Error message should match expected error message",
+            expectedMessage,
             (actualResult.last() as Resource.Error).message
         )
     }

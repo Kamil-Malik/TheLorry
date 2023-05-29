@@ -30,14 +30,13 @@ import com.lelestacia.thelorrytest.domain.model.Restaurant
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
 
 @Composable
-fun FoodItem(
+fun RestaurantItem(
     restaurant: Restaurant,
     onClicked: (Int) -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(4.dp))
             .clickable {
                 onClicked(restaurant.id)
@@ -98,7 +97,7 @@ fun PreviewRestaurantItem() {
     )
     TheLorryTestTheme {
         Surface {
-            FoodItem(
+            RestaurantItem(
                 restaurant = restaurant,
                 onClicked = {}
             )

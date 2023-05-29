@@ -1,10 +1,13 @@
 package com.lelestacia.thelorrytest.di
 
+import com.lelestacia.thelorrytest.BuildConfig
 import com.lelestacia.thelorrytest.data.remote.RestaurantAPI
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
@@ -15,11 +18,35 @@ object HttpModule {
 
     @Singleton
     @Provides
-    fun provideRetrofit(): Retrofit =
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor()
+            .setLevel(
+                if (BuildConfig.DEBUG) {
+                    HttpLoggingInterceptor.Level.BODY
+                } else {
+                    HttpLoggingInterceptor.Level.NONE
+                }
+            )
+
+    @Singleton
+    @Provides
+    fun provideOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(loggingInterceptor)
+        .build()
+
+    @Singleton
+    @Provides
+    fun provideRetrofit(
+        okHttpClient: OkHttpClient
+    ): Retrofit =
         Retrofit
             .Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create())
+            .client(okHttpClient)
+            .validateEagerly(true)
             .build()
 
     @Singleton

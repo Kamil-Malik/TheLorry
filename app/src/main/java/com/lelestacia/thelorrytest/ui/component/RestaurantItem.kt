@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.lelestacia.thelorrytest.domain.model.Restaurant
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
@@ -67,7 +68,8 @@ fun RestaurantItem(
             Text(
                 text = restaurant.title,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Normal
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 18.sp
                 ),
                 color = Color.White,
                 modifier = Modifier.weight(1f)

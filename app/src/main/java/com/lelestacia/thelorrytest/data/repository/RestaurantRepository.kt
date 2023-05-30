@@ -2,7 +2,9 @@ package com.lelestacia.thelorrytest.data.repository
 
 import com.lelestacia.thelorrytest.data.model.RestaurantDTO
 import com.lelestacia.thelorrytest.data.remote.RestaurantAPI
+import com.lelestacia.thelorrytest.domain.mapper.asDetailRestaurant
 import com.lelestacia.thelorrytest.domain.mapper.asRestaurant
+import com.lelestacia.thelorrytest.domain.model.DetailRestaurant
 import com.lelestacia.thelorrytest.domain.model.Restaurant
 import com.lelestacia.thelorrytest.util.ErrorParserUtil
 import com.lelestacia.thelorrytest.util.Resource
@@ -25,6 +27,22 @@ class RestaurantRepository @Inject constructor(
         return flow<Resource<List<Restaurant>>> {
             val apiResult = restaurantAPI.getRestaurantsListByCategory(category = category)
             emit(Resource.Success(data = apiResult.data.restaurants.map(RestaurantDTO::asRestaurant)))
+        }.onStart {
+            emit(Resource.Loading)
+        }.catch {
+            emit(
+                Resource.Error(
+                    data = null,
+                    message = errorParserUtil(it)
+                )
+            )
+        }.flowOn(ioDispatcher)
+    }
+
+    override fun getRestaurantDetailsByID(restaurantID: Int): Flow<Resource<DetailRestaurant>> {
+        return flow<Resource<DetailRestaurant>> {
+            val apiResult = restaurantAPI.getRestaurantDetailsByID(restaurantID = restaurantID)
+            emit(Resource.Success(data = apiResult.data.asDetailRestaurant()))
         }.onStart {
             emit(Resource.Loading)
         }.catch {

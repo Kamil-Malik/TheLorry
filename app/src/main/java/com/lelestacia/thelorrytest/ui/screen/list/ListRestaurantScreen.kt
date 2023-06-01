@@ -2,7 +2,6 @@ package com.lelestacia.thelorrytest.ui.screen.list
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,7 +20,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -33,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,8 +39,11 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.Restaurant
 import com.lelestacia.thelorrytest.ui.component.RestaurantItem
+import com.lelestacia.thelorrytest.ui.screen.utility.ErrorScreen
+import com.lelestacia.thelorrytest.ui.screen.utility.LoadingScreen
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
 import com.lelestacia.thelorrytest.util.Categories
 import com.lelestacia.thelorrytest.util.Resource
@@ -151,32 +153,13 @@ fun ListRestaurantScreen(
                 }
             }
             when (restaurantResources) {
-                is Resource.Error -> {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(
-                            4.dp,
-                            Alignment.CenterVertically
-                        ),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Text(text = restaurantResources.message ?: "Unknown Error")
-                        Button(onClick = { onRetry.invoke() }) {
-                            Text(text = "Retry")
-                        }
-                    }
-                }
+                is Resource.Error -> ErrorScreen(
+                    errorMessage = restaurantResources.message
+                        ?: stringResource(id = R.string.unknown_error),
+                    onRetry = onRetry::invoke
+                )
 
-                Resource.Loading -> {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                    ) {
-                        LinearProgressIndicator()
-                    }
-                }
+                Resource.Loading -> LoadingScreen()
 
                 Resource.None -> Unit
 

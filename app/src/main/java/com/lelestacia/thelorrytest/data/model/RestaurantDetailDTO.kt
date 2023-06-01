@@ -4,37 +4,37 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class DetailRestaurantDTO(
-    @field:Json(name = "title")
+data class RestaurantDetailDTO(
+    @Json(name = "title")
     val title: String,
 
-    @field:Json(name = "images")
+    @Json(name = "images")
     val images: List<ImageUrlDTO>,
 
-    @field:Json(name = "rating")
+    @Json(name = "rating")
     val rating: Int,
 
-    @field:Json(name = "address")
+    @Json(name = "address")
     val address: RestaurantAddressDTO,
 
-    @field:Json(name = "description")
+    @Json(name = "description")
     val description: String
 ) {
     @JsonClass(generateAdapter = true)
     data class ImageUrlDTO(
-        @field:Json(name = "url")
+        @Json(name = "url")
         val url: String
     )
 
     @JsonClass(generateAdapter = true)
     data class RestaurantAddressDTO(
-        @field:Json(name = "full_name")
+        @Json(name = "full_name")
         val fullName: String,
 
-        @field:Json(name = "lat")
+        @Json(name = "lat")
         val lat: String,
 
-        @field:Json(name = "lng")
+        @Json(name = "lng")
         val lng: String
     )
 }

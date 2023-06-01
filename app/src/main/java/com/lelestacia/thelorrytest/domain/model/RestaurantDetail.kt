@@ -1,6 +1,6 @@
 package com.lelestacia.thelorrytest.domain.model
 
-data class DetailRestaurant(
+data class RestaurantDetail(
     val title: String,
     val images: List<ImageUrl>,
     val rating: Int,

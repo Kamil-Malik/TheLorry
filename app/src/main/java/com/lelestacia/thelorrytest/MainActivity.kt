@@ -113,11 +113,20 @@ class MainActivity : ComponentActivity() {
                             val viewModel: DetailRestaurantViewModel = hiltViewModel()
                             LaunchedEffect(key1 = Unit) {
                                 viewModel.getRestaurantDetailsByID(restaurantID)
+                                viewModel.updateRestaurantID(restaurantID)
+                                viewModel.fetchComment()
                             }
-                            val detailRestaurant by viewModel.detailRestaurant.collectAsStateWithLifecycle()
+                            val detailRestaurant by viewModel.restaurantDetail.collectAsStateWithLifecycle()
+                            val comments = viewModel.comments
+                            val commentsLoadState by viewModel.commentLoadState.collectAsStateWithLifecycle()
+                            val hasNextPage by viewModel.hasNextPage.collectAsStateWithLifecycle()
                             DetailRestaurantScreen(
                                 navController = navController,
-                                detailRestaurant = detailRestaurant
+                                restaurantDetail = detailRestaurant,
+                                comments = comments,
+                                commentsLoadState = commentsLoadState,
+                                hasNextPage = hasNextPage,
+                                onNextComment = viewModel::fetchComment
                             )
                         }
                     }

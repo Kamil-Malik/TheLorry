@@ -1,10 +1,10 @@
 package com.lelestacia.thelorrytest
 
-import com.lelestacia.thelorrytest.data.model.DetailRestaurantDTO
+import com.lelestacia.thelorrytest.data.model.RestaurantDetailDTO
 import com.lelestacia.thelorrytest.data.model.GenericType
 import com.lelestacia.thelorrytest.data.model.GenericTypeError
 import com.lelestacia.thelorrytest.data.model.RestaurantDTO
-import com.lelestacia.thelorrytest.data.model.RestaurantListDTO
+import com.lelestacia.thelorrytest.data.model.RestaurantsDTO
 import com.lelestacia.thelorrytest.data.remote.RestaurantAPI
 import com.lelestacia.thelorrytest.data.repository.IRestaurantRepository
 import com.lelestacia.thelorrytest.data.repository.RestaurantRepository
@@ -77,7 +77,7 @@ class RepositoryTest {
         val expectedResult = GenericType(
             status = true,
             message = "Food has been fetched successfully",
-            data = RestaurantListDTO(
+            data = RestaurantsDTO(
                 restaurants = listOf(
                     RestaurantDTO(
                         id = 1,
@@ -178,27 +178,27 @@ class RepositoryTest {
             val expectedResult = GenericType(
                 status = true,
                 message = "Food details has been fetched successfully",
-                data = DetailRestaurantDTO(
+                data = RestaurantDetailDTO(
                     title = "Tom's Kitchen",
                     images = listOf(
-                        DetailRestaurantDTO.ImageUrlDTO(
+                        RestaurantDetailDTO.ImageUrlDTO(
                             url = "https://img.freepik.com/free-photo/top-view-table-full-delicious-food-composition_23-2149141352.jpg?w=1380&t=st=1685077948~exp=1685078548~hmac=dc6e59db72bc9f6dd6c9658f7e049882c1057ba1c3d1fde2f1311dec21681706"
                         ),
-                        DetailRestaurantDTO.ImageUrlDTO(
+                        RestaurantDetailDTO.ImageUrlDTO(
                             url = "https://img.freepik.com/free-photo/top-view-table-full-delicious-food_23-2149141313.jpg?t=st=1685055169~exp=1685055769~hmac=f0546d7234bba701fee3392f7c16d57c322806cfc881e19100ddeb51977ca365"
                         ),
-                        DetailRestaurantDTO.ImageUrlDTO(
+                        RestaurantDetailDTO.ImageUrlDTO(
                             url = "https://img.freepik.com/premium-photo/traditional-spanish-breakfast-tostada-with-different-toppings-dark-background_79782-3251.jpg?w=1380"
                         ),
-                        DetailRestaurantDTO.ImageUrlDTO(
+                        RestaurantDetailDTO.ImageUrlDTO(
                             url = "https://img.freepik.com/free-photo/fruit-salad-spilling-floor-was-mess-vibrant-colors-textures-generative-ai_8829-2895.jpg?w=826&t=st=1685078122~exp=1685078722~hmac=6db09ebf5256817a8f3e8f2043f9ba9275fe8614bb954eb35070c7ba2267c2c5"
                         ),
-                        DetailRestaurantDTO.ImageUrlDTO(
+                        RestaurantDetailDTO.ImageUrlDTO(
                             url = "https://img.freepik.com/free-psd/delicous-asian-food-social-media-template_505751-2982.jpg?w=1380&t=st=1685080108~exp=1685080708~hmac=b10d601c91849abd3165ddf1fa919da2a5aa399bab5e889eb6ec6b40d08d921a"
                         )
                     ),
                     rating = 4,
-                    address = DetailRestaurantDTO.RestaurantAddressDTO(
+                    address = RestaurantDetailDTO.RestaurantAddressDTO(
                         fullName = "Jl. RC. Veteran Raya No.9, Bintaro, Kec. Pesanggrahan, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12330",
                         lat = "-6.2830295",
                         lng = "106.7940221"

@@ -1,8 +1,8 @@
 package com.lelestacia.thelorrytest.domain.mapper
 
-import com.lelestacia.thelorrytest.data.model.DetailRestaurantDTO
+import com.lelestacia.thelorrytest.data.model.RestaurantDetailDTO
 import com.lelestacia.thelorrytest.data.model.RestaurantDTO
-import com.lelestacia.thelorrytest.domain.model.DetailRestaurant
+import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
 import com.lelestacia.thelorrytest.domain.model.Restaurant
 
 fun RestaurantDTO.asRestaurant() =
@@ -12,14 +12,14 @@ fun RestaurantDTO.asRestaurant() =
         image = image
     )
 
-fun DetailRestaurantDTO.asDetailRestaurant() =
-    DetailRestaurant(
+fun RestaurantDetailDTO.asDetailRestaurant() =
+    RestaurantDetail(
         title,
         images = images.map {
-            DetailRestaurant.ImageUrl(it.url)
+            RestaurantDetail.ImageUrl(it.url)
         },
         rating = rating,
-        address = DetailRestaurant.RestaurantAddress(
+        address = RestaurantDetail.RestaurantAddress(
             fullName = address.fullName,
             lat = address.lat,
             lng = address.lng

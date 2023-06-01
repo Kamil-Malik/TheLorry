@@ -5,12 +5,12 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class RestaurantDTO(
-    @field:Json(name = "id")
+    @Json(name = "id")
     val id: Int,
 
-    @field:Json(name = "title")
+    @Json(name = "title")
     val title: String,
 
-    @field:Json(name = "image")
+    @Json(name = "image")
     val image: String
 )

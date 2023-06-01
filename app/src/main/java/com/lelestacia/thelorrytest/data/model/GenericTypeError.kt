@@ -5,19 +5,19 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class GenericTypeError(
-    @field:Json(name = "status")
+    @Json(name = "status")
     val status: Boolean,
 
-    @field:Json(name = "message")
+    @Json(name = "message")
     val message: String,
 
-    @field:Json(name = "error")
+    @Json(name = "error")
     val error: ErrorAPI
 ) {
 
     @JsonClass(generateAdapter = true)
     data class ErrorAPI(
-        @field:Json(name = "message")
+        @Json(name = "message")
         val message: String,
     )
 }

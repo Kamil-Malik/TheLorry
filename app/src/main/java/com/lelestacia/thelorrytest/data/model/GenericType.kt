@@ -5,12 +5,12 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class GenericType<T>(
-    @field:Json(name = "status")
+    @Json(name = "status")
     val status: Boolean,
 
-    @field:Json(name = "message")
+    @Json(name = "message")
     val message: String,
 
-    @field:Json(name = "data")
+    @Json(name = "data")
     val data: T
 )

@@ -8,7 +8,6 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +34,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -71,15 +69,12 @@ class MainActivity : ComponentActivity() {
                             )
 
                             val viewModel: ListRestaurantViewModel = hiltViewModel()
-                            val selectedCategory by viewModel.selectedCategories.collectAsStateWithLifecycle()
-                            val restaurants by viewModel.restaurants.collectAsStateWithLifecycle()
+                            val screenState by viewModel.listRestaurantScreenState.collectAsStateWithLifecycle()
 
                             ListRestaurantScreen(
                                 navController = navController,
-                                restaurantResources = restaurants,
-                                selectedCategories = selectedCategory,
-                                onCategoriesClicked = viewModel::onCategoriesChanged,
-                                onRetry = viewModel::getRestaurantsListByCategory
+                                screenState = screenState,
+                                onEvent = viewModel::onEvent
                             )
                         }
 
@@ -102,24 +97,20 @@ class MainActivity : ComponentActivity() {
                                     animationSpec = tween()
                                 )
                             }
-                        ) {
-                            val restaurantID = it.arguments?.getInt("restaurant_id") ?: 0
+                        ) { navBackStackEntry ->
+                            val restaurantID = navBackStackEntry.arguments?.getInt("restaurant_id") ?: 0
                             val viewModel: DetailRestaurantViewModel = hiltViewModel()
+
                             LaunchedEffect(key1 = Unit) {
                                 viewModel.updateRestaurantID(restaurantID)
                             }
-                            val detailRestaurant by viewModel.restaurantDetail.collectAsStateWithLifecycle()
-                            val comments = viewModel.comments
-                            val commentsLoadState by viewModel.commentLoadState.collectAsStateWithLifecycle()
-                            val hasNextPage by viewModel.hasNextPage.collectAsStateWithLifecycle()
+
+                            val screenState by viewModel.detailRestaurantScreenState.collectAsStateWithLifecycle()
+
                             DetailRestaurantScreen(
                                 navController = navController,
-                                restaurantDetail = detailRestaurant,
-                                onRetry = { viewModel.getRestaurantDetailsByID(restaurantID) },
-                                comments = comments,
-                                commentsLoadState = commentsLoadState,
-                                hasNextPage = hasNextPage,
-                                onRetryOrNextComment = viewModel::fetchComment,
+                                screenState = screenState,
+                                onEvent = viewModel::onEvent
                             )
                         }
                     }

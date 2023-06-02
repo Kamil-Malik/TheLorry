@@ -45,7 +45,6 @@ import com.lelestacia.thelorrytest.ui.component.RestaurantItem
 import com.lelestacia.thelorrytest.ui.screen.utility.ErrorScreen
 import com.lelestacia.thelorrytest.ui.screen.utility.LoadingScreen
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
-import com.lelestacia.thelorrytest.util.Categories
 import com.lelestacia.thelorrytest.util.Resource
 import com.lelestacia.thelorrytest.util.Screen
 import com.lelestacia.thelorrytest.util.getCategoriesAsList
@@ -54,10 +53,8 @@ import com.lelestacia.thelorrytest.util.getCategoriesAsList
 @Composable
 fun ListRestaurantScreen(
     navController: NavHostController,
-    restaurantResources: Resource<List<Restaurant>>,
-    selectedCategories: Categories,
-    onCategoriesClicked: (Categories) -> Unit,
-    onRetry: () -> Unit
+    screenState: ListRestaurantScreenState,
+    onEvent: (ListRestaurantScreenEvent) -> Unit
 ) {
     val navBackStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
     val currentRoute: String? = navBackStackEntry?.destination?.route
@@ -129,13 +126,17 @@ fun ListRestaurantScreen(
                 items(
                     items = categories,
                     key = { it.displayName }
-                ) {
+                ) { category ->
                     FilterChip(
-                        selected = selectedCategories == it,
-                        onClick = { onCategoriesClicked(it) },
+                        selected = screenState.selectedCategory == category,
+                        onClick = {
+                            onEvent(
+                                ListRestaurantScreenEvent.OnCategorySelected(category)
+                            )
+                        },
                         label = {
                             Text(
-                                text = it.displayName,
+                                text = category.displayName,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -152,11 +153,15 @@ fun ListRestaurantScreen(
                     )
                 }
             }
-            when (restaurantResources) {
+            when (screenState.restaurants) {
                 is Resource.Error -> ErrorScreen(
-                    errorMessage = restaurantResources.message
+                    errorMessage = screenState.restaurants.message
                         ?: stringResource(id = R.string.unknown_error),
-                    onRetry = onRetry::invoke
+                    onRetry = {
+                        onEvent(
+                            ListRestaurantScreenEvent.OnListRestaurantRetry
+                        )
+                    }
                 )
 
                 Resource.Loading -> LoadingScreen()
@@ -174,7 +179,7 @@ fun ListRestaurantScreen(
                         )
                     ) {
                         items(
-                            items = restaurantResources.data ?: emptyList(),
+                            items = screenState.restaurants.data ?: emptyList(),
                             key = { restaurant ->
                                 restaurant.id
                             }
@@ -220,10 +225,10 @@ fun PreviewListRestaurantScreen() {
         Surface {
             ListRestaurantScreen(
                 navController = rememberNavController(),
-                restaurantResources = Resource.Success(restaurants),
-                selectedCategories = Categories.ASIAN,
-                onCategoriesClicked = {},
-                onRetry = {}
+                screenState = ListRestaurantScreenState(
+                    restaurants = Resource.Success(restaurants)
+                ),
+                onEvent = {}
             )
         }
     }

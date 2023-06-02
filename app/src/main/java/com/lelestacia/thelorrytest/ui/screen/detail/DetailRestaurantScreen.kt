@@ -14,33 +14,36 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,9 +54,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lelestacia.thelorrytest.R
-import com.lelestacia.thelorrytest.domain.model.Comment
 import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
-import com.lelestacia.thelorrytest.domain.model.TomKitchen
 import com.lelestacia.thelorrytest.ui.component.CommentItem
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantAddressAndOpenMaps
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantDescription
@@ -69,15 +70,13 @@ import com.lelestacia.thelorrytest.util.Screen
 @Composable
 fun DetailRestaurantScreen(
     navController: NavHostController,
-    restaurantDetail: Resource<RestaurantDetail>,
-    onRetry: () -> Unit,
-    comments: SnapshotStateList<Comment>,
-    commentsLoadState: Resource<Any>,
-    hasNextPage: Boolean,
-    onRetryOrNextComment: () -> Unit,
+    screenState: DetailRestaurantScreenState,
+    onEvent: (DetailRestaurantScreenEvent) -> Unit
 ) {
     val navBackStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
     val currentRoute: String? = navBackStackEntry?.destination?.route
+    val restaurantDetail = screenState.restaurantDetail
+    val restaurantComments = screenState.restaurantDetailComments
     Scaffold(
         topBar = {
             TopAppBar(
@@ -102,7 +101,7 @@ fun DetailRestaurantScreen(
         },
         bottomBar = {
             AnimatedVisibility(
-                visible = commentsLoadState is Resource.Success || comments.isNotEmpty(),
+                visible = restaurantComments.second is Resource.Success || restaurantComments.first.isNotEmpty(),
                 enter = fadeIn() + slideInVertically()
             ) {
                 Box(
@@ -118,13 +117,39 @@ fun DetailRestaurantScreen(
                             horizontal = 16.dp
                         )
                     ) {
-                        TextField(
-                            value = "",
-                            onValueChange = {},
-                            modifier = Modifier.weight(1f)
+                        OutlinedTextField(
+                            value = screenState.userComment,
+                            onValueChange = { newUserComment ->
+                                onEvent(
+                                    DetailRestaurantScreenEvent.OnUserCommentChanged(
+                                        comment = newUserComment
+                                    )
+                                )
+                            },
+                            modifier = Modifier
+                                .weight(1f),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                containerColor = Color.White,
+                            ),
+                            shape = RoundedCornerShape(6.dp),
+                            placeholder = {
+                                Text(text = stringResource(R.string.write_a_comment))
+                            }
                         )
-                        IconButton(onClick = { }) {
-                            Icon(imageVector = Icons.Default.Send, contentDescription = null)
+                        ElevatedCard(
+                            onClick = {},
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier.size(34.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Send,
+                                contentDescription = null,
+                                modifier = Modifier.padding(8.dp)
+                            )
                         }
                     }
                 }
@@ -143,7 +168,11 @@ fun DetailRestaurantScreen(
                     ErrorScreen(
                         errorMessage = restaurantDetail.message
                             ?: stringResource(id = R.string.unknown_error),
-                        onRetry = onRetry::invoke,
+                        onRetry = {
+                            onEvent(
+                                DetailRestaurantScreenEvent.OnRetryRestaurantDetailRestaurant
+                            )
+                        },
                     )
                 }
 
@@ -169,7 +198,10 @@ fun DetailRestaurantScreen(
                 }
             }
 
-            val size by animateIntAsState(targetValue = comments.size, label = "comments")
+            val size by animateIntAsState(
+                targetValue = restaurantComments.first.size,
+                label = "comments"
+            )
             AnimatedVisibility(visible = restaurantDetail is Resource.Success) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -193,19 +225,26 @@ fun DetailRestaurantScreen(
                             bottom = 12.dp
                         )
                     ) {
-                        items(comments) { comment ->
+                        items(
+                            items = restaurantComments.first,
+                            key = { comment -> comment.id }
+                        ) { comment ->
                             CommentItem(comment = comment)
                         }
 
-                        when (commentsLoadState) {
+                        when (restaurantComments.second) {
                             is Resource.Error -> {
                                 item {
                                     ErrorScreen(
-                                        errorMessage = commentsLoadState.message
+                                        errorMessage = restaurantComments.second.message
                                             ?: stringResource(id = R.string.unknown_error),
-                                        onRetry = onRetryOrNextComment::invoke,
+                                        onRetry = {
+                                            onEvent(
+                                                DetailRestaurantScreenEvent.OnRetryOrLoadNextComment
+                                            )
+                                        },
                                         modifier = Modifier.height(
-                                            if (comments.isEmpty()) 500.dp
+                                            if (restaurantComments.first.isEmpty()) 500.dp
                                             else 250.dp
                                         )
                                     )
@@ -217,7 +256,7 @@ fun DetailRestaurantScreen(
                                     LoadingScreen(
                                         modifier = Modifier
                                             .height(
-                                                if (comments.isEmpty()) 500.dp
+                                                if (restaurantComments.first.isEmpty()) 500.dp
                                                 else 125.dp
                                             )
                                     )
@@ -225,10 +264,14 @@ fun DetailRestaurantScreen(
                             }
 
                             is Resource.Success -> {
-                                if (hasNextPage) {
+                                if (screenState.hasNextPage) {
                                     item {
                                         TextButton(
-                                            onClick = onRetryOrNextComment::invoke,
+                                            onClick = {
+                                                onEvent(
+                                                    DetailRestaurantScreenEvent.OnRetryOrLoadNextComment
+                                                )
+                                            },
                                             colors = ButtonDefaults.textButtonColors(
                                                 contentColor = MaterialTheme.colorScheme.primary
                                             ),
@@ -261,20 +304,13 @@ fun DetailRestaurantScreen(
 @Preview
 @Composable
 fun PreviewDetailRestaurant() {
-    val comment = remember {
-        mutableStateListOf<Comment>()
-    }
-
     TheLorryTestTheme {
         Surface {
             DetailRestaurantScreen(
                 navController = rememberNavController(),
-                restaurantDetail = Resource.Success(data = TomKitchen),
-                onRetry = {},
-                comments = comment,
-                commentsLoadState = Resource.None,
-                hasNextPage = false,
-                onRetryOrNextComment = {})
+                screenState = DetailRestaurantScreenState(),
+                onEvent = {}
+            )
         }
     }
 }

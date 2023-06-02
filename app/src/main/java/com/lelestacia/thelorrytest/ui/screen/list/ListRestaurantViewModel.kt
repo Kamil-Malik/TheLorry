@@ -8,9 +8,10 @@ import com.lelestacia.thelorrytest.util.Categories
 import com.lelestacia.thelorrytest.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,20 +23,32 @@ class ListRestaurantViewModel @Inject constructor(
 
     private val _selectedCategories: MutableStateFlow<Categories> =
         MutableStateFlow(Categories.ASIAN)
-    val selectedCategories: StateFlow<Categories> = _selectedCategories.asStateFlow()
-
     private val _restaurants: MutableStateFlow<Resource<List<Restaurant>>> =
         MutableStateFlow(Resource.None)
-    val restaurants: StateFlow<Resource<List<Restaurant>>> = _restaurants.asStateFlow()
+    val listRestaurantScreenState = combine(
+        flow = _selectedCategories,
+        flow2 = _restaurants
+    ) { selectedCategory, restaurants ->
+        ListRestaurantScreenState(
+            selectedCategory = selectedCategory,
+            restaurants = restaurants
+        )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, ListRestaurantScreenState())
 
-    fun onCategoriesChanged(categories: Categories) {
-        _selectedCategories.update { categories }
-        getRestaurantsListByCategory()
+    fun onEvent(event: ListRestaurantScreenEvent) = viewModelScope.launch {
+        when (event) {
+            is ListRestaurantScreenEvent.OnCategorySelected -> {
+                _selectedCategories.update { event.category }
+                getRestaurantsListByCategory()
+            }
+
+            ListRestaurantScreenEvent.OnListRestaurantRetry -> getRestaurantsListByCategory()
+        }
     }
 
-    fun getRestaurantsListByCategory() = viewModelScope.launch {
+    private fun getRestaurantsListByCategory() = viewModelScope.launch {
         useCases.getRestaurantsListByCategory(
-            category = selectedCategories.value.queryName
+            category = _selectedCategories.value.queryName
         ).collectLatest { result ->
             _restaurants.update { result }
         }

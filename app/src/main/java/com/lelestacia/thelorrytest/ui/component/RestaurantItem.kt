@@ -54,7 +54,7 @@ fun RestaurantItem(
             model = ImageRequest.Builder(context)
                 .fetcherDispatcher(Dispatchers.IO)
                 .data(restaurant.image)
-                .error(R.drawable.img)
+                .error(R.drawable.error_placeholder)
                 .build(),
             contentDescription = restaurant.title,
             contentScale = ContentScale.Crop,

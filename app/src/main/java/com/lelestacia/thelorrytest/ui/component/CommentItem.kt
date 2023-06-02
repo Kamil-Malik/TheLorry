@@ -28,7 +28,6 @@ import coil.request.ImageRequest
 import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.Comment
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
-import com.lelestacia.thelorrytest.ui.theme.cardColor
 
 @Composable
 fun CommentItem(
@@ -38,7 +37,7 @@ fun CommentItem(
     val context = LocalContext.current
     ElevatedCard(
         colors = CardDefaults.cardColors(
-            containerColor = cardColor
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         modifier = modifier.fillMaxWidth()
     ) {
@@ -49,7 +48,7 @@ fun CommentItem(
             AsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(comment.profilePicture)
-                    .error(R.drawable.img)
+                    .error(R.drawable.error_placeholder)
                     .memoryCachePolicy(CachePolicy.ENABLED)
                     .build(),
                 contentDescription = "Profile Picture",

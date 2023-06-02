@@ -4,7 +4,10 @@ import com.lelestacia.thelorrytest.data.model.CommentsDTO
 import com.lelestacia.thelorrytest.data.model.RestaurantDetailDTO
 import com.lelestacia.thelorrytest.data.model.RestaurantsDTO
 import com.lelestacia.thelorrytest.data.model.GenericType
+import com.lelestacia.thelorrytest.data.model.PostCommentDTO
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -25,4 +28,9 @@ interface RestaurantAPI {
         @Path("restaurant_id") restaurantID: Int,
         @Query("page") page: Int
     ): GenericType<CommentsDTO>
+
+    @POST("comments")
+    suspend fun sendCommentToRestaurantByID(
+        @Body comment: PostCommentDTO
+    ): GenericType<PostCommentDTO>
 }

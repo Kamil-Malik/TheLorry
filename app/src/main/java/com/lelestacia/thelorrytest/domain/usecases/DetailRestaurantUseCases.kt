@@ -2,6 +2,7 @@ package com.lelestacia.thelorrytest.domain.usecases
 
 import com.lelestacia.thelorrytest.data.repository.IRestaurantRepository
 import com.lelestacia.thelorrytest.domain.model.Comment
+import com.lelestacia.thelorrytest.domain.model.PostComment
 import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
 import com.lelestacia.thelorrytest.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,9 @@ class DetailRestaurantUseCases @Inject constructor(
 ) : IDetailRestaurantUseCases {
 
     override fun getRestaurantDetailsByID(restaurantID: Int): Flow<Resource<RestaurantDetail>> {
-        return repository.getRestaurantDetailsByID(restaurantID = restaurantID)
+        return repository.getRestaurantDetailsByID(
+            restaurantID = restaurantID
+        )
     }
 
     override fun getCommentsByRestaurantID(
@@ -22,6 +25,12 @@ class DetailRestaurantUseCases @Inject constructor(
         return repository.getCommentsByRestaurantID(
             restaurantID = restaurantID,
             page = page
+        )
+    }
+
+    override fun sendCommentToRestaurantByID(comment: PostComment): Flow<Resource<String>> {
+        return repository.sendCommentToRestaurantByID(
+            comment = comment
         )
     }
 }

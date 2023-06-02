@@ -1,6 +1,5 @@
 package com.lelestacia.thelorrytest.ui.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,21 +19,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.Restaurant
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
+import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun RestaurantItem(
     restaurant: Restaurant,
     onClicked: (Int) -> Unit
 ) {
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -44,19 +51,22 @@ fun RestaurantItem(
             }
     ) {
         AsyncImage(
-            model = restaurant.image,
+            model = ImageRequest.Builder(context)
+                .fetcherDispatcher(Dispatchers.IO)
+                .data(restaurant.image)
+                .error(R.drawable.img)
+                .build(),
             contentDescription = restaurant.title,
             contentScale = ContentScale.Crop,
             alignment = Alignment.Center,
+            colorFilter = ColorFilter.tint(
+                color = Color.Black.copy(
+                    alpha = 0.5F
+                ),
+                blendMode = BlendMode.Darken
+            ),
             modifier = Modifier
                 .aspectRatio(4F)
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    color = Color.Black.copy(alpha = 0.5F)
-                )
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,

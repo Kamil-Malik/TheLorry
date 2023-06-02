@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.Comment
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
 import com.lelestacia.thelorrytest.ui.theme.cardColor
@@ -48,6 +49,7 @@ fun CommentItem(
             AsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(comment.profilePicture)
+                    .error(R.drawable.img)
                     .memoryCachePolicy(CachePolicy.ENABLED)
                     .build(),
                 contentDescription = "Profile Picture",

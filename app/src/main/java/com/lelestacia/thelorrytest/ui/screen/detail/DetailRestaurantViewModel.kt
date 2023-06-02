@@ -41,6 +41,8 @@ class DetailRestaurantViewModel @Inject constructor(
 
     fun updateRestaurantID(restaurantID: Int) = viewModelScope.launch {
         _restaurantID.update { restaurantID }
+        getRestaurantDetailsByID(restaurantID = _restaurantID.value)
+        fetchComment()
     }
 
     fun getRestaurantDetailsByID(restaurantID: Int) = viewModelScope.launch {

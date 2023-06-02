@@ -28,10 +28,8 @@ import com.lelestacia.thelorrytest.ui.screen.detail.DetailRestaurantViewModel
 import com.lelestacia.thelorrytest.ui.screen.list.ListRestaurantScreen
 import com.lelestacia.thelorrytest.ui.screen.list.ListRestaurantViewModel
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
-import com.lelestacia.thelorrytest.util.Resource
 import com.lelestacia.thelorrytest.util.Screen
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.retry
 
 @OptIn(ExperimentalAnimationApi::class)
 @AndroidEntryPoint
@@ -74,18 +72,14 @@ class MainActivity : ComponentActivity() {
 
                             val viewModel: ListRestaurantViewModel = hiltViewModel()
                             val selectedCategory by viewModel.selectedCategories.collectAsStateWithLifecycle()
-                            val restaurants by viewModel.restaurants.collectAsStateWithLifecycle(
-                                initialValue = Resource.None
-                            )
+                            val restaurants by viewModel.restaurants.collectAsStateWithLifecycle()
 
                             ListRestaurantScreen(
                                 navController = navController,
                                 restaurantResources = restaurants,
                                 selectedCategories = selectedCategory,
                                 onCategoriesClicked = viewModel::onCategoriesChanged,
-                                onRetry = {
-                                    viewModel.restaurants.retry()
-                                }
+                                onRetry = viewModel::getRestaurantsListByCategory
                             )
                         }
 
@@ -112,9 +106,7 @@ class MainActivity : ComponentActivity() {
                             val restaurantID = it.arguments?.getInt("restaurant_id") ?: 0
                             val viewModel: DetailRestaurantViewModel = hiltViewModel()
                             LaunchedEffect(key1 = Unit) {
-                                viewModel.getRestaurantDetailsByID(restaurantID)
                                 viewModel.updateRestaurantID(restaurantID)
-                                viewModel.fetchComment()
                             }
                             val detailRestaurant by viewModel.restaurantDetail.collectAsStateWithLifecycle()
                             val comments = viewModel.comments
@@ -123,10 +115,11 @@ class MainActivity : ComponentActivity() {
                             DetailRestaurantScreen(
                                 navController = navController,
                                 restaurantDetail = detailRestaurant,
+                                onRetry = { viewModel.getRestaurantDetailsByID(restaurantID) },
                                 comments = comments,
                                 commentsLoadState = commentsLoadState,
                                 hasNextPage = hasNextPage,
-                                onNextComment = viewModel::fetchComment
+                                onRetryOrNextComment = viewModel::fetchComment,
                             )
                         }
                     }

@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -80,7 +80,7 @@ fun RestaurantAddressAndOpenMaps(
             shape = RoundedCornerShape(6.dp)
         ) {
             Icon(
-                imageVector = Icons.Filled.LocationOn,
+                imageVector = Icons.Outlined.LocationOn,
                 contentDescription = null
             )
             Spacer(modifier = Modifier.width(14.dp))

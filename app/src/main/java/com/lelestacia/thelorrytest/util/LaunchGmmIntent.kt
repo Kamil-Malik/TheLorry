@@ -8,6 +8,6 @@ import com.lelestacia.thelorrytest.R
 fun Context.launchGmmIntent(lat: String, lng: String) {
     val gmmIntentUri = Uri.parse(getString(R.string.gmm_uri, lat, lng))
     val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-    mapIntent.setPackage("com.google.android.apps.maps")
+    mapIntent.setPackage(getString(R.string.gmm_package_name))
     startActivity(mapIntent)
 }

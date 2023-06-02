@@ -1,6 +1,5 @@
 package com.lelestacia.thelorrytest.domain.usecases
 
-import androidx.paging.PagingData
 import com.lelestacia.thelorrytest.data.repository.IRestaurantRepository
 import com.lelestacia.thelorrytest.domain.model.Comment
 import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
@@ -14,10 +13,6 @@ class DetailRestaurantUseCases @Inject constructor(
 
     override fun getRestaurantDetailsByID(restaurantID: Int): Flow<Resource<RestaurantDetail>> {
         return repository.getRestaurantDetailsByID(restaurantID = restaurantID)
-    }
-
-    override fun getCommentsByRestaurantID(restaurantID: Int): Flow<PagingData<Comment>> {
-        return repository.getCommentsByRestaurantID(restaurantID)
     }
 
     override fun getCommentsByRestaurantID(

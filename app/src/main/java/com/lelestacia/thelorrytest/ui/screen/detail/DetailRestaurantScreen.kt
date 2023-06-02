@@ -1,10 +1,9 @@
 package com.lelestacia.thelorrytest.ui.screen.detail
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,19 +21,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,10 +49,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.paging.PagingData
+import androidx.navigation.compose.rememberNavController
 import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.Comment
 import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
+import com.lelestacia.thelorrytest.domain.model.TomKitchen
 import com.lelestacia.thelorrytest.ui.component.CommentItem
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantAddressAndOpenMaps
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantDescription
@@ -57,6 +61,7 @@ import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantRating
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantTitleAndShowcase
 import com.lelestacia.thelorrytest.ui.screen.utility.ErrorScreen
 import com.lelestacia.thelorrytest.ui.screen.utility.LoadingScreen
+import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
 import com.lelestacia.thelorrytest.util.Resource
 import com.lelestacia.thelorrytest.util.Screen
 
@@ -65,10 +70,11 @@ import com.lelestacia.thelorrytest.util.Screen
 fun DetailRestaurantScreen(
     navController: NavHostController,
     restaurantDetail: Resource<RestaurantDetail>,
+    onRetry: () -> Unit,
     comments: SnapshotStateList<Comment>,
     commentsLoadState: Resource<Any>,
     hasNextPage: Boolean,
-    onNextComment: () -> Unit
+    onRetryOrNextComment: () -> Unit,
 ) {
     val navBackStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
     val currentRoute: String? = navBackStackEntry?.destination?.route
@@ -95,26 +101,31 @@ fun DetailRestaurantScreen(
             )
         },
         bottomBar = {
-            Box(
-                modifier = Modifier.background(
-                    MaterialTheme.colorScheme.surfaceVariant
-                )
+            AnimatedVisibility(
+                visible = commentsLoadState is Resource.Success || comments.isNotEmpty(),
+                enter = fadeIn() + slideInVertically()
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(
-                        vertical = 12.dp,
-                        horizontal = 16.dp
+                Box(
+                    modifier = Modifier.background(
+                        MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
-                    OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(onClick = { }) {
-                        Icon(imageVector = Icons.Default.Send, contentDescription = null)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(
+                            vertical = 12.dp,
+                            horizontal = 16.dp
+                        )
+                    ) {
+                        TextField(
+                            value = "",
+                            onValueChange = {},
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = { }) {
+                            Icon(imageVector = Icons.Default.Send, contentDescription = null)
+                        }
                     }
                 }
             }
@@ -124,10 +135,17 @@ fun DetailRestaurantScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
         ) {
             when (restaurantDetail) {
-                is Resource.Error -> ErrorScreen(errorMessage = "", onRetry = { })
+                is Resource.Error -> {
+                    ErrorScreen(
+                        errorMessage = restaurantDetail.message
+                            ?: stringResource(id = R.string.unknown_error),
+                        onRetry = onRetry::invoke,
+                    )
+                }
 
                 Resource.Loading -> LoadingScreen()
 
@@ -151,59 +169,87 @@ fun DetailRestaurantScreen(
                 }
             }
 
-            AnimatedVisibility(
-                visible = comments.size != 0,
-                enter = fadeIn() + slideInVertically(),
-                exit = fadeOut() + slideOutVertically()
-            ) {
-                Text(
-                    text = stringResource(R.string.comment_count, comments.size),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            LazyColumn(
-                state = rememberLazyListState(),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier
-                    .height(500.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp)
-            ) {
-                items(comments) { comment ->
-                    CommentItem(comment = comment)
-                }
-
-                when (commentsLoadState) {
-                    is Resource.Error -> {
-
-                    }
-
-                    Resource.Loading -> {
-                        item {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(
-                                        if (comments.isEmpty()) 500.dp
-                                        else 125.dp
-                                    )
-                            ) {
-                                LinearProgressIndicator()
-                            }
+            val size by animateIntAsState(targetValue = comments.size, label = "comments")
+            AnimatedVisibility(visible = restaurantDetail is Resource.Success) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.comment_count, size),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    LazyColumn(
+                        state = rememberLazyListState(),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier
+                            .height(500.dp),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = 12.dp
+                        )
+                    ) {
+                        items(comments) { comment ->
+                            CommentItem(comment = comment)
                         }
-                    }
 
-                    else -> Unit
-                }
+                        when (commentsLoadState) {
+                            is Resource.Error -> {
+                                item {
+                                    ErrorScreen(
+                                        errorMessage = commentsLoadState.message
+                                            ?: stringResource(id = R.string.unknown_error),
+                                        onRetry = onRetryOrNextComment::invoke,
+                                        modifier = Modifier.height(
+                                            if (comments.isEmpty()) 500.dp
+                                            else 250.dp
+                                        )
+                                    )
+                                }
+                            }
 
-                item {
-                    AnimatedVisibility(visible = hasNextPage && commentsLoadState is Resource.Success) {
-                        Button(onClick = onNextComment::invoke) {
-                            Text(text = "Load next page")
+                            Resource.Loading -> {
+                                item {
+                                    LoadingScreen(
+                                        modifier = Modifier
+                                            .height(
+                                                if (comments.isEmpty()) 500.dp
+                                                else 125.dp
+                                            )
+                                    )
+                                }
+                            }
+
+                            is Resource.Success -> {
+                                if (hasNextPage) {
+                                    item {
+                                        TextButton(
+                                            onClick = onRetryOrNextComment::invoke,
+                                            colors = ButtonDefaults.textButtonColors(
+                                                contentColor = MaterialTheme.colorScheme.primary
+                                            ),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.load_more_comments),
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontSize = 16.sp
+                                                )
+                                            )
+                                            Icon(
+                                                imageVector = Icons.Default.KeyboardDoubleArrowDown,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            else -> Unit
                         }
                     }
                 }
@@ -215,44 +261,20 @@ fun DetailRestaurantScreen(
 @Preview
 @Composable
 fun PreviewDetailRestaurant() {
-    val restaurantDetail = RestaurantDetail(
-        title = "Tom's Kitchen",
-        images = listOf(
-            RestaurantDetail.ImageUrl(
-                url = "https://img.freepik.com/free-photo/top-view-table-full-delicious-food-composition_23-2149141352.jpg?w=1380&t=st=1685077948~exp=1685078548~hmac=dc6e59db72bc9f6dd6c9658f7e049882c1057ba1c3d1fde2f1311dec21681706"
-            ),
-            RestaurantDetail.ImageUrl(
-                url = "https://img.freepik.com/free-photo/top-view-table-full-delicious-food_23-2149141313.jpg?t=st=1685055169~exp=1685055769~hmac=f0546d7234bba701fee3392f7c16d57c322806cfc881e19100ddeb51977ca365"
-            ),
-            RestaurantDetail.ImageUrl(
-                url = "https://img.freepik.com/premium-photo/traditional-spanish-breakfast-tostada-with-different-toppings-dark-background_79782-3251.jpg?w=1380"
-            ),
-            RestaurantDetail.ImageUrl(
-                url = "https://img.freepik.com/free-photo/fruit-salad-spilling-floor-was-mess-vibrant-colors-textures-generative-ai_8829-2895.jpg?w=826&t=st=1685078122~exp=1685078722~hmac=6db09ebf5256817a8f3e8f2043f9ba9275fe8614bb954eb35070c7ba2267c2c5"
-            ),
-            RestaurantDetail.ImageUrl(
-                url = "https://img.freepik.com/free-psd/delicous-asian-food-social-media-template_505751-2982.jpg?w=1380&t=st=1685080108~exp=1685080708~hmac=b10d601c91849abd3165ddf1fa919da2a5aa399bab5e889eb6ec6b40d08d921a"
-            )
-        ),
-        rating = 4,
-        address = RestaurantDetail.RestaurantAddress(
-            fullName = "Jl. RC. Veteran Raya No.9, Bintaro, Kec. Pesanggrahan, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12330",
-            lat = "-6.2830295",
-            lng = "106.7940221"
-        ),
-        description = "The Stick is a delightful food place that specializes in grilled beef steaks. Located in a cozy setting, it offers a mouthwatering selection of perfectly cooked steaks served on a dark wooden surface. The aroma of sizzling meat fills the air, enticing diners with its irresistible appeal. Whether you prefer your steak rare, medium, or well-done, The Stick ensures a culinary experience that satisfies even the most discerning meat lovers. Indulge in their succulent steaks, accompanied by a range of delectable sides and sauces, for a truly memorable dining experience."
-    )
+    val comment = remember {
+        mutableStateListOf<Comment>()
+    }
 
-    val comments = listOf(
-        Comment(
-            id = 5210,
-            userName = "Tom John",
-            body = "Best food in town! Highly recommended!",
-            profilePicture = "https://img.freepik.com/free-vector/businessman-character-avatar-isolated_24877-60111.jpg?w=1380&t=st=1685080702exp=1685081302hmac=25064c0fcde5709896af5d58a8c55d5da65692c5f30292965d9f914bdaa34959"
-        )
-    )
-
-    val pagingDataComment = PagingData.from(comments)
-
-
+    TheLorryTestTheme {
+        Surface {
+            DetailRestaurantScreen(
+                navController = rememberNavController(),
+                restaurantDetail = Resource.Success(data = TomKitchen),
+                onRetry = {},
+                comments = comment,
+                commentsLoadState = Resource.None,
+                hasNextPage = false,
+                onRetryOrNextComment = {})
+        }
+    }
 }

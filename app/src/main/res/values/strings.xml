@@ -17,6 +17,7 @@
     <string name="parsing_failed">Response failed to parse.</string>
     <string name="no_connection">Please check your connection and try again.</string>
     <string name="unknown_error">Unknown Error</string>
+    <string name="maps_not_found">Maps is not installed on your phone, please install it first.</string>
     <string name="comment_cannot_be_empty">Comment cannot be empty</string>
 
     <string name="write_a_comment">Write a comment…</string>

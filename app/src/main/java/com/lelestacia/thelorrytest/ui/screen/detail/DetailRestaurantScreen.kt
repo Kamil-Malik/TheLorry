@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -57,6 +58,8 @@ import com.lelestacia.thelorrytest.ui.screen.utility.ErrorScreen
 import com.lelestacia.thelorrytest.ui.screen.utility.LoadingScreen
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
 import com.lelestacia.thelorrytest.util.Resource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +69,7 @@ fun DetailRestaurantScreen(
     onEvent: (DetailRestaurantScreenEvent) -> Unit,
     sendCommentStatus: Resource<String>
 ) {
+    val scope: CoroutineScope = rememberCoroutineScope()
     val restaurantDetail = screenState.restaurantDetail
     val restaurantComments = screenState.restaurantDetailComments
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -167,7 +171,14 @@ fun DetailRestaurantScreen(
                     RestaurantRating(rating = rating)
 
                     val address = detail.address
-                    RestaurantAddressAndOpenMaps(address = address)
+                    RestaurantAddressAndOpenMaps(
+                        address = address,
+                        onErrorOpeningMaps = { errorMessage ->
+                            scope.launch {
+                                snackBarHostState.showSnackbar(errorMessage)
+                            }
+                        }
+                    )
 
                     val description = detail.description
                     RestaurantDescription(description = description)
@@ -212,7 +223,8 @@ fun DetailRestaurantScreen(
                             is Resource.Error -> {
                                 item {
                                     ErrorScreen(
-                                        errorMessage = restaurantComments.second.message ?: unknownError,
+                                        errorMessage = restaurantComments.second.message
+                                            ?: unknownError,
                                         onRetry = {
                                             onEvent(
                                                 DetailRestaurantScreenEvent.OnRetryOrLoadNextComment

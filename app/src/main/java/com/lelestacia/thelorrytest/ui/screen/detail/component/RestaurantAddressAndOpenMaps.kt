@@ -1,5 +1,6 @@
 package com.lelestacia.thelorrytest.ui.screen.detail.component
 
+import android.os.Build.VERSION
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -31,14 +31,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
+import com.lelestacia.thelorrytest.util.copyText
 import com.lelestacia.thelorrytest.util.launchGmmIntent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantAddressAndOpenMaps(
-    address: RestaurantDetail.RestaurantAddress
+    address: RestaurantDetail.RestaurantAddress,
+    onErrorOpeningMaps: (String) -> Unit
 ) {
-    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val mapsErrorMessage: String = stringResource(id = R.string.maps_not_found)
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.padding(horizontal = 16.dp)
@@ -56,7 +60,11 @@ fun RestaurantAddressAndOpenMaps(
             )
             ElevatedCard(
                 onClick = {
-                    clipboardManager.setText(AnnotatedString(address.fullName))
+                    if (VERSION.SDK_INT >= 33) {
+                        clipboardManager.setText(AnnotatedString(address.fullName))
+                    } else {
+                        context.copyText(address.fullName)
+                    }
                 },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -71,10 +79,14 @@ fun RestaurantAddressAndOpenMaps(
                 )
             }
         }
-
-        val context = LocalContext.current
         Button(
-            onClick = { context.launchGmmIntent(address.lat, address.lng) },
+            onClick = {
+                try {
+                    context.launchGmmIntent(address.lat, address.lng)
+                } catch (e: Exception) {
+                    onErrorOpeningMaps(mapsErrorMessage)
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth(),
             shape = RoundedCornerShape(6.dp)

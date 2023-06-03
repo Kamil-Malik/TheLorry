@@ -1,3 +1,35 @@
 <resources>
     <string name="app_name">The Lorry Test</string>
+
+    <!--GMM-->
+    <string name="gmm_uri">google.navigation:q=%s,%s</string>
+    <string name="gmm_package_name">com.google.android.apps.maps</string>
+
+    <!--Error Message-->
+    <string name="parsing_failed">Response failed to parse.</string>
+    <string name="no_connection">Please check your connection and try again.</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="maps_not_found">Maps is not installed on your phone, please install it first.</string>
+    <string name="comment_cannot_be_empty">Comment cannot be empty</string>
+
+    <!--Assistive-->
+    <string name="back_button_assistive">Back Button</string>
+
+    <!--UI Related: List Screen-->
+    <string name="restaurant">Restaurant</string>
+    <string name="filter">Filter</string>
+
+    <!--UI Related: Detail Screen-->
+    <string name="rating">Rating:</string>
+    <string name="rating_value">%1$s/5</string>
+    <string name="copy_address">Copy Address</string>
+    <string name="navigate_with_google_map">Navigate with Google Map</string>
+    <string name="description">Description</string>
+    <string name="comment_count">Comment (%1$s)</string>
+    <string name="load_more_comments">Load more comments</string>
+    <string name="write_a_comment">Write a comment…</string>
+
+    <!--UI Related: Others-->
+    <string name="retry">Retry</string>
+    <string name="food_images">Food images</string>
 </resources>

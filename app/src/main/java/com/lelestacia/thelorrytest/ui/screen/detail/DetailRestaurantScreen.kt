@@ -4,99 +4,105 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
 import com.lelestacia.thelorrytest.ui.component.CommentItem
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantAddressAndOpenMaps
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantDescription
+import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantDetailPostComment
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantRating
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantTitleAndShowcase
 import com.lelestacia.thelorrytest.ui.screen.utility.ErrorScreen
 import com.lelestacia.thelorrytest.ui.screen.utility.LoadingScreen
 import com.lelestacia.thelorrytest.ui.theme.TheLorryTestTheme
 import com.lelestacia.thelorrytest.util.Resource
-import com.lelestacia.thelorrytest.util.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailRestaurantScreen(
     navController: NavHostController,
     screenState: DetailRestaurantScreenState,
-    onEvent: (DetailRestaurantScreenEvent) -> Unit
+    onEvent: (DetailRestaurantScreenEvent) -> Unit,
+    sendCommentStatus: Resource<String>
 ) {
-    val navBackStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
-    val currentRoute: String? = navBackStackEntry?.destination?.route
     val restaurantDetail = screenState.restaurantDetail
     val restaurantComments = screenState.restaurantDetailComments
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollState = rememberScrollState()
+    val snackBarHostState = remember {
+        SnackbarHostState()
+    }
+    val unknownError = stringResource(id = R.string.unknown_error)
+    LaunchedEffect(key1 = sendCommentStatus, block = {
+        if (sendCommentStatus is Resource.Success) {
+            snackBarHostState.showSnackbar(sendCommentStatus.data as String)
+        } else if (sendCommentStatus is Resource.Error) {
+            snackBarHostState.showSnackbar(sendCommentStatus.message ?: unknownError)
+        }
+    })
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {},
                 navigationIcon = {
                     IconButton(
-                        onClick = {
-                            if (currentRoute == Screen.ListRestaurant.route) {
-                                return@IconButton
-                            }
-                            navController.popBackStack()
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back Button",
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
+                        onClick = navController::popBackStack,
+                        content = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = stringResource(R.string.back_button_assistive),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    )
                 },
+                colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    navigationIconContentColor = MaterialTheme.colorScheme.primary
+                ),
+                scrollBehavior = scrollBehavior
             )
         },
         bottomBar = {
@@ -104,70 +110,40 @@ fun DetailRestaurantScreen(
                 visible = restaurantComments.second is Resource.Success || restaurantComments.first.isNotEmpty(),
                 enter = fadeIn() + slideInVertically()
             ) {
-                Box(
-                    modifier = Modifier.background(
-                        MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(
-                            vertical = 12.dp,
-                            horizontal = 16.dp
-                        )
-                    ) {
-                        OutlinedTextField(
-                            value = screenState.userComment,
-                            onValueChange = { newUserComment ->
-                                onEvent(
-                                    DetailRestaurantScreenEvent.OnUserCommentChanged(
-                                        comment = newUserComment
-                                    )
-                                )
-                            },
-                            modifier = Modifier
-                                .weight(1f),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                containerColor = Color.White,
-                            ),
-                            shape = RoundedCornerShape(6.dp),
-                            placeholder = {
-                                Text(text = stringResource(R.string.write_a_comment))
-                            }
-                        )
-                        ElevatedCard(
-                            onClick = {},
-                            colors = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            shape = RoundedCornerShape(4.dp),
-                            modifier = Modifier.size(34.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Send,
-                                contentDescription = null,
-                                modifier = Modifier.padding(8.dp)
+                RestaurantDetailPostComment(
+                    userComment = screenState.userComment,
+                    onUserCommentChanged = { newUserComment ->
+                        onEvent(
+                            DetailRestaurantScreenEvent.OnUserCommentChanged(
+                                comment = newUserComment
                             )
-                        }
-                    }
-                }
+                        )
+                    },
+                    onSendUserComment = {
+                        onEvent(
+                            DetailRestaurantScreenEvent.OnSendUserComment
+                        )
+                    },
+                    sendCommentStatus = sendCommentStatus
+                )
             }
-        }
+        },
+        snackbarHost = {
+            SnackbarHost(snackBarHostState)
+        },
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.Center,
         ) {
             when (restaurantDetail) {
                 is Resource.Error -> {
                     ErrorScreen(
-                        errorMessage = restaurantDetail.message
-                            ?: stringResource(id = R.string.unknown_error),
+                        errorMessage = restaurantDetail.message ?: unknownError,
                         onRetry = {
                             onEvent(
                                 DetailRestaurantScreenEvent.OnRetryRestaurantDetailRestaurant
@@ -236,8 +212,7 @@ fun DetailRestaurantScreen(
                             is Resource.Error -> {
                                 item {
                                     ErrorScreen(
-                                        errorMessage = restaurantComments.second.message
-                                            ?: stringResource(id = R.string.unknown_error),
+                                        errorMessage = restaurantComments.second.message ?: unknownError,
                                         onRetry = {
                                             onEvent(
                                                 DetailRestaurantScreenEvent.OnRetryOrLoadNextComment
@@ -309,7 +284,8 @@ fun PreviewDetailRestaurant() {
             DetailRestaurantScreen(
                 navController = rememberNavController(),
                 screenState = DetailRestaurantScreenState(),
-                onEvent = {}
+                onEvent = {},
+                sendCommentStatus = Resource.None
             )
         }
     }

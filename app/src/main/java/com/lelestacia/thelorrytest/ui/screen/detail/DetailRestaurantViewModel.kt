@@ -8,11 +8,13 @@ import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
 import com.lelestacia.thelorrytest.domain.usecases.IDetailRestaurantUseCases
 import com.lelestacia.thelorrytest.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
@@ -36,6 +38,15 @@ class DetailRestaurantViewModel @Inject constructor(
         MutableStateFlow(Resource.None)
     private val _userComment: MutableStateFlow<String> = MutableStateFlow("")
 
+    private val _sendCommentStatus: Channel<Resource<String>> = Channel()
+    val sendCommentStatus = _sendCommentStatus
+        .receiveAsFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = Resource.None
+        )
+
     val detailRestaurantScreenState: StateFlow<DetailRestaurantScreenState> = combine(
         flow = _restaurantDetail,
         flow2 = _hasNextPage,
@@ -46,7 +57,11 @@ class DetailRestaurantViewModel @Inject constructor(
         DetailRestaurantScreenState(
             restaurantDetail, hasNextPage, Pair(comments, commentsLoadState), userComment
         )
-    }.stateIn(viewModelScope, SharingStarted.Lazily, DetailRestaurantScreenState())
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = DetailRestaurantScreenState()
+    )
 
     fun onEvent(event: DetailRestaurantScreenEvent) = viewModelScope.launch {
         when (event) {
@@ -55,12 +70,19 @@ class DetailRestaurantViewModel @Inject constructor(
                 _restaurantID.value
             )
 
-            DetailRestaurantScreenEvent.OnSendUserComment -> useCases.sendCommentToRestaurantByID(
-                PostComment(
-                    restaurantID = _restaurantID.value,
-                    message = _userComment.value
-                )
-            )
+            DetailRestaurantScreenEvent.OnSendUserComment -> useCases
+                .sendCommentToRestaurantByID(
+                    PostComment(
+                        restaurantID = _restaurantID.value,
+                        message = _userComment.value
+                    )
+                ).collectLatest { result ->
+                    if (result is Resource.Success) {
+                        _userComment.update { "" }
+                    }
+
+                    _sendCommentStatus.send(result)
+                }
 
             is DetailRestaurantScreenEvent.OnUserCommentChanged -> _userComment.update {
                 event.comment

@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController: NavHostController = rememberAnimatedNavController()
             val uiController = rememberSystemUiController()
-            TheLorryTestTheme {
+            TheLorryTestTheme(dynamicColor = false) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -98,7 +98,8 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         ) { navBackStackEntry ->
-                            val restaurantID = navBackStackEntry.arguments?.getInt("restaurant_id") ?: 0
+                            val restaurantID =
+                                navBackStackEntry.arguments?.getInt("restaurant_id") ?: 0
                             val viewModel: DetailRestaurantViewModel = hiltViewModel()
 
                             LaunchedEffect(key1 = Unit) {
@@ -106,11 +107,13 @@ class MainActivity : ComponentActivity() {
                             }
 
                             val screenState by viewModel.detailRestaurantScreenState.collectAsStateWithLifecycle()
+                            val sendCommentStatus by viewModel.sendCommentStatus.collectAsStateWithLifecycle()
 
                             DetailRestaurantScreen(
                                 navController = navController,
                                 screenState = screenState,
-                                onEvent = viewModel::onEvent
+                                onEvent = viewModel::onEvent,
+                                sendCommentStatus = sendCommentStatus
                             )
                         }
                     }

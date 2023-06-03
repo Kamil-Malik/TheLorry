@@ -82,11 +82,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
     implementation("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
 
-    //  Paging
-    implementation("androidx.paging:paging-runtime-ktx:3.1.1")
-    implementation("androidx.paging:paging-compose:1.0.0-alpha20")
-    testImplementation("androidx.paging:paging-common-ktx:3.1.1")
-
     //  ViewModel - Lifecycle
     val lifecycleVersion = "2.6.1"
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")

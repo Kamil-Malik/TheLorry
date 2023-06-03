@@ -51,7 +51,7 @@ import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
 import com.lelestacia.thelorrytest.ui.component.CommentItem
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantAddressAndOpenMaps
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantDescription
-import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantDetailPostComment
+import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantPostComment
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantRating
 import com.lelestacia.thelorrytest.ui.screen.detail.component.RestaurantTitleAndShowcase
 import com.lelestacia.thelorrytest.ui.screen.utility.ErrorScreen
@@ -114,7 +114,7 @@ fun DetailRestaurantScreen(
                 visible = restaurantComments.second is Resource.Success || restaurantComments.first.isNotEmpty(),
                 enter = fadeIn() + slideInVertically()
             ) {
-                RestaurantDetailPostComment(
+                RestaurantPostComment(
                     userComment = screenState.userComment,
                     onUserCommentChanged = { newUserComment ->
                         onEvent(
@@ -128,7 +128,12 @@ fun DetailRestaurantScreen(
                             DetailRestaurantScreenEvent.OnSendUserComment
                         )
                     },
-                    sendCommentStatus = sendCommentStatus
+                    sendCommentStatus = sendCommentStatus,
+                    onSendError = { errorMessage ->
+                        scope.launch {
+                            snackBarHostState.showSnackbar(errorMessage)
+                        }
+                    }
                 )
             }
         },

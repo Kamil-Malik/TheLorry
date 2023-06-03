@@ -82,7 +82,7 @@ fun ListRestaurantScreen(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "Restaurant",
+                    text = stringResource(R.string.restaurant),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
                     modifier = Modifier.weight(1f)
                 )
@@ -103,7 +103,7 @@ fun ListRestaurantScreen(
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "Filter",
+                        text = stringResource(R.string.filter),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold

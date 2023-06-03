@@ -14,10 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
 
 @Composable
@@ -48,7 +50,7 @@ fun RestaurantTitleAndShowcase(
             ) { food ->
                 AsyncImage(
                     model = food.url,
-                    contentDescription = "Food images",
+                    contentDescription = stringResource(R.string.food_images),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(110.dp)

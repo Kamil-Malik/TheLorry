@@ -11,9 +11,13 @@ import com.lelestacia.thelorrytest.domain.model.Comment
 import com.lelestacia.thelorrytest.domain.model.PostComment
 import com.lelestacia.thelorrytest.domain.model.Restaurant
 import com.lelestacia.thelorrytest.domain.model.RestaurantDetail
-import com.lelestacia.thelorrytest.util.ErrorParserUtil
-import com.lelestacia.thelorrytest.util.PostCommentErrorParserUtil
+import com.lelestacia.thelorrytest.util.CommentTooLongException
+import com.lelestacia.thelorrytest.util.CommentTooShortException
 import com.lelestacia.thelorrytest.util.Resource
+import com.lelestacia.thelorrytest.util.isTooLong
+import com.lelestacia.thelorrytest.util.isTooShort
+import com.lelestacia.thelorrytest.util.parser.ErrorParserUtil
+import com.lelestacia.thelorrytest.util.parser.PostCommentErrorParserUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -92,7 +96,12 @@ class RestaurantRepository @Inject constructor(
         comment: PostComment
     ): Flow<Resource<String>> {
         return flow<Resource<String>> {
-            if(comment.message.isEmpty()) throw NullPointerException()
+            with(comment.message) {
+                if (isEmpty()) throw NullPointerException()
+                if (isTooShort()) throw CommentTooShortException()
+                if (isTooLong()) throw CommentTooLongException()
+            }
+
             val apiResult = restaurantAPI.sendCommentToRestaurantByID(
                 comment = comment.asPostCommentDTO()
             )

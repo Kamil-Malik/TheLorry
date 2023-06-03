@@ -14,8 +14,9 @@ import com.lelestacia.thelorrytest.domain.mapper.asDetailRestaurant
 import com.lelestacia.thelorrytest.domain.mapper.asRestaurant
 import com.lelestacia.thelorrytest.domain.model.PostComment
 import com.lelestacia.thelorrytest.util.CommentsResponse
-import com.lelestacia.thelorrytest.util.ErrorParserUtil
-import com.lelestacia.thelorrytest.util.PostCommentErrorParserUtil
+import com.lelestacia.thelorrytest.util.parser.ErrorParserUtil
+import com.lelestacia.thelorrytest.util.Lorem
+import com.lelestacia.thelorrytest.util.parser.PostCommentErrorParserUtil
 import com.lelestacia.thelorrytest.util.PostCommentErrorResponse
 import com.lelestacia.thelorrytest.util.PostCommentResponse
 import com.lelestacia.thelorrytest.util.Resource
@@ -362,6 +363,78 @@ class RepositoryTest {
             PostComment(
                 restaurantID = PostCommentResponse.data.id,
                 message = PostCommentResponse.data.message
+            )
+        ).toList()
+        assertTrue(
+            "First result should be Loading",
+            actualResult.first() is Resource.Loading
+        )
+        assertTrue(
+            "Second result should be Error",
+            actualResult.last() is Resource.Error
+        )
+        assertEquals(
+            "Error message should match expected error message",
+            expectedMessage,
+            (actualResult.last() as Resource.Error).message
+        )
+    }
+
+    @Test
+    fun `Post Comments Too Long error message should be correct`() = runTest {
+        val expectedMessage = context.getString(R.string.comment_too_long)
+        val actualResult = restaurantRepository.sendCommentToRestaurantByID(
+            PostComment(
+                restaurantID = PostCommentResponse.data.id,
+                message = Lorem
+            )
+        ).toList()
+        assertTrue(
+            "First result should be Loading",
+            actualResult.first() is Resource.Loading
+        )
+        assertTrue(
+            "Second result should be Error",
+            actualResult.last() is Resource.Error
+        )
+        assertEquals(
+            "Error message should match expected error message",
+            expectedMessage,
+            (actualResult.last() as Resource.Error).message
+        )
+    }
+
+    @Test
+    fun `Post Comments Too Short error message should be correct`() = runTest {
+        val expectedMessage = context.getString(R.string.comment_too_short)
+        val actualResult = restaurantRepository.sendCommentToRestaurantByID(
+            PostComment(
+                restaurantID = PostCommentResponse.data.id,
+                message = "Food OK"
+            )
+        ).toList()
+        assertTrue(
+            "First result should be Loading",
+            actualResult.first() is Resource.Loading
+        )
+        assertTrue(
+            "Second result should be Error",
+            actualResult.last() is Resource.Error
+        )
+        assertEquals(
+            "Error message should match expected error message",
+            expectedMessage,
+            (actualResult.last() as Resource.Error).message
+        )
+    }
+
+    @Test
+    fun `Post Comments Empty error message should be correct`() = runTest {
+        val expectedMessage = context.getString(R.string.comment_is_empty)
+        val actualResult = restaurantRepository.sendCommentToRestaurantByID(
+            PostComment(
+                restaurantID = PostCommentResponse.data.id,
+                message = ""
             )
         ).toList()
         assertTrue(

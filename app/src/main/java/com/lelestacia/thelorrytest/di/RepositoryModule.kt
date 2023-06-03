@@ -4,8 +4,8 @@ import android.content.Context
 import com.lelestacia.thelorrytest.data.remote.RestaurantAPI
 import com.lelestacia.thelorrytest.data.repository.IRestaurantRepository
 import com.lelestacia.thelorrytest.data.repository.RestaurantRepository
-import com.lelestacia.thelorrytest.util.ErrorParserUtil
-import com.lelestacia.thelorrytest.util.PostCommentErrorParserUtil
+import com.lelestacia.thelorrytest.util.parser.ErrorParserUtil
+import com.lelestacia.thelorrytest.util.parser.PostCommentErrorParserUtil
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

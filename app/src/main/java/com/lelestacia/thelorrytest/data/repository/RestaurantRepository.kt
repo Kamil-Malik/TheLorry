@@ -92,6 +92,7 @@ class RestaurantRepository @Inject constructor(
         comment: PostComment
     ): Flow<Resource<String>> {
         return flow<Resource<String>> {
+            if(comment.message.isEmpty()) throw NullPointerException()
             val apiResult = restaurantAPI.sendCommentToRestaurantByID(
                 comment = comment.asPostCommentDTO()
             )

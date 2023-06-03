@@ -26,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,9 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lelestacia.thelorrytest.R
 import com.lelestacia.thelorrytest.domain.model.Restaurant
@@ -56,24 +53,22 @@ fun ListRestaurantScreen(
     screenState: ListRestaurantScreenState,
     onEvent: (ListRestaurantScreenEvent) -> Unit
 ) {
-    val navBackStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
-    val currentRoute: String? = navBackStackEntry?.destination?.route
     Scaffold(
         topBar = {
-            TopAppBar(title = {}, navigationIcon = {
-                IconButton(onClick = {
-                    if (currentRoute == Screen.ListRestaurant.route) {
-                        return@IconButton
-                    }
-                    navController.popBackStack()
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back Button",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+            TopAppBar(
+                title = {},
+                navigationIcon = {
+                    IconButton(
+                        onClick = {},
+                        content = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = stringResource(R.string.back_button_assistive),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        })
                 }
-            })
+            )
         }
     ) { paddingValues ->
         Column(

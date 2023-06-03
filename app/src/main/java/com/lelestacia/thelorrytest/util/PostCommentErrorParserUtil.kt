@@ -37,6 +37,10 @@ class PostCommentErrorParserUtil(
             return context.getString(R.string.no_connection)
         }
 
+        if (t is NullPointerException) {
+            return context.getString(R.string.comment_cannot_be_empty)
+        }
+
         return t.message ?: context.getString(R.string.unknown_error)
     }
 }
